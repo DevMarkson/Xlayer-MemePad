@@ -1,0 +1,27 @@
+{
+  "name": "meme-token-launchpad",
+  "version": "1.0.0",
+  "description": "Pump.fun-style Meme Token Launchpad on X Layer chain",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy-testnet.js --network xlayerTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy-mainnet.js --network xlayerMainnet",
+    "node": "hardhat node",
+    "clean": "hardhat clean"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "defi",
+    "launchpad",
+    "meme-token"
+  ],
+  "author": "Your Team",
+  "license": "MIT",
+  "devDependencies": {
+    "hardhat": "^2.19.0",
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}

@@ -1,0 +1,48 @@
+# Node / Next.js
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.npmrc
+.cache/
+.eslintcache
+.next/
+out/
+dist/
+build/
+.vercel/
+.turbo/
+
+# Env files
+.env
+.env.*
+!.env.example
+env
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Coverage
+coverage/
+coverage-final.json
+lcov.info
+
+# Solidity / Hardhat / Foundry
+artifacts/
+cache/
+broadcast/
+typechain/
+typechain-types/
+.openzeppelin/
+
+# Next image cache
+.next/cache/

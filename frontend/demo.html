@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🚀 Meme Token Launchpad | X Layer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              secondary: {
+                50: "#fdf4ff",
+                100: "#fae8ff",
+                200: "#f5d0fe",
+                300: "#f0abfc",
+                400: "#e879f9",
+                500: "#d946ef",
+                600: "#c026d3",
+                700: "#a21caf",
+                800: "#86198f",
+                900: "#701a75",
+              },
+              success: {
+                500: "#22c55e",
+                400: "#4ade80",
+              },
+              warning: {
+                500: "#f59e0b",
+              },
+              error: {
+                500: "#ef4444",
+              },
+            },
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+            },
+            animation: {
+              "fade-in": "fadeIn 0.5s ease-in-out",
+              "slide-up": "slideUp 0.3s ease-out",
+              "bounce-gentle": "bounceGentle 2s infinite",
+            },
+            keyframes: {
+              fadeIn: {
+                "0%": { opacity: "0" },
+                "100%": { opacity: "1" },
+              },
+              slideUp: {
+                "0%": { transform: "translateY(10px)", opacity: "0" },
+                "100%": { transform: "translateY(0)", opacity: "1" },
+              },
+              bounceGentle: {
+                "0%, 100%": { transform: "translateY(0)" },
+                "50%": { transform: "translateY(-5px)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+      .btn-primary {
+        @apply bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 hover:shadow-lg;
+      }
+
+      .btn-secondary {
+        @apply bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-6 rounded-xl border border-white/20 transition-all duration-200 hover:border-white/40;
+      }
+
+      .card {
+        @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all duration-200;
+      }
+
+      .input-field {
+        @apply bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200;
+      }
+
+      .gradient-text {
+        @apply bg-gradient-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent;
+      }
+
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0f172a 0%,
+          #581c87 50%,
+          #0f172a 100%
+        );
+        min-height: 100vh;
+        color: white;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <!-- Header -->
+    <header
+      class="fixed top-0 left-0 right-0 z-50 bg-white/5 backdrop-blur-xl border-b border-white/10"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <div
+              class="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center"
+            >
+              <span class="text-2xl">🚀</span>
+            </div>
+            <div class="hidden sm:block ml-3">
+              <h1 class="text-xl font-bold gradient-text">Meme Launchpad</h1>
+              <p class="text-xs text-white/60">X Layer</p>
+            </div>
+          </div>
+
+          <!-- Navigation -->
+          <nav class="hidden md:flex space-x-8">
+            <a
+              href="#features"
+              class="text-white/70 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >Features</a
+            >
+            <a
+              href="#how-it-works"
+              class="text-white/70 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >How It Works</a
+            >
+            <a
+              href="#docs"
+              class="text-white/70 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+              >Documentation</a
+            >
+          </nav>
+
+          <!-- Wallet Connection -->
+          <button
+            class="btn-primary flex items-center space-x-2"
+            onclick="showWalletModal()"
+          >
+            <span>🔗</span>
+            <span>Connect Wallet</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-4 relative overflow-hidden">
+      <div class="absolute inset-0 overflow-hidden">
+        <div
+          class="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/20 rounded-full blur-3xl"
+        ></div>
+        <div
+          class="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary-500/20 rounded-full blur-3xl"
+        ></div>
+      </div>
+
+      <div class="max-w-7xl mx-auto relative z-10">
+        <div class="text-center">
+          <!-- Badge -->
+          <div
+            class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded-full px-4 py-2 mb-8"
+          >
+            <span class="text-yellow-400">⭐</span>
+            <span class="text-sm font-medium text-white/90"
+              >🚀 First Meme Token Launchpad on X Layer</span
+            >
+          </div>
+
+          <!-- Main Headline -->
+          <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <span class="gradient-text">Launch Your Meme Token</span>
+            <br />
+            <span class="text-white">in Seconds</span>
+          </h1>
+
+          <!-- Description -->
+          <p
+            class="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto mb-12 leading-relaxed"
+          >
+            Create, launch, and trade meme tokens on X Layer with automatic
+            bonding curve mechanics. No coding required. Just pay 0.1 OKB and
+            watch your token go viral! 🌟
+          </p>
+
+          <!-- CTA Buttons -->
+          <div
+            class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
+          >
+            <button
+              class="btn-primary text-lg px-8 py-4 flex items-center space-x-2 group"
+              onclick="scrollToCreate()"
+            >
+              <span>🚀 Create Token Now</span>
+              <span
+                class="group-hover:translate-x-1 transition-transform duration-200"
+                >→</span
+              >
+            </button>
+            <button
+              class="btn-secondary text-lg px-8 py-4 flex items-center space-x-2"
+            >
+              <span>▶️</span>
+              <span>Watch Demo</span>
+            </button>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+            <div class="text-center">
+              <div class="text-3xl font-bold gradient-text mb-2">0.1 OKB</div>
+              <div class="text-white/70">Creation Fee</div>
+            </div>
+            <div class="text-center">
+              <div class="text-3xl font-bold gradient-text mb-2">1B Supply</div>
+              <div class="text-white/70">Initial Tokens</div>
+            </div>
+            <div class="text-center">
+              <div class="text-3xl font-bold gradient-text mb-2">Auto LP</div>
+              <div class="text-white/70">Liquidity Provision</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 px-4" id="features">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+          <h2 class="text-4xl md:text-5xl font-bold mb-6 gradient-text">
+            Why Choose Our Launchpad?
+          </h2>
+          <p class="text-xl text-white/80 max-w-3xl mx-auto">
+            We've built the most user-friendly and feature-rich meme token
+            launchpad on X Layer. Here's what makes us special:
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="card group hover:scale-105 transition-all duration-300">
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
+            >
+              <span class="text-2xl">🚀</span>
+            </div>
+            <h3 class="text-xl font-bold mb-4 text-white">
+              Instant Token Creation
+            </h3>
+            <p class="text-white/70 leading-relaxed">
+              Create your meme token in seconds with just a name, symbol, and
+              0.1 OKB fee. No coding knowledge required!
+            </p>
+          </div>
+
+          <div class="card group hover:scale-105 transition-all duration-300">
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-secondary-500 to-secondary-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
+            >
+              <span class="text-2xl">📈</span>
+            </div>
+            <h3 class="text-xl font-bold mb-4 text-white">
+              Bonding Curve Mechanics
+            </h3>
+            <p class="text-white/70 leading-relaxed">
+              Automatic price discovery through linear bonding curves. Price
+              increases with each token sold, ensuring fair value.
+            </p>
+          </div>
+
+          <div class="card group hover:scale-105 transition-all duration-300">
+            <div
+              class="w-16 h-16 bg-gradient-to-r from-success-500 to-success-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300"
+            >
+              <span class="text-2xl">💰</span>
+            </div>
+            <h3 class="text-xl font-bold mb-4 text-white">
+              Automatic Liquidity
+            </h3>
+            <p class="text-white/70 leading-relaxed">
+              Once 80 OKB threshold is reached, liquidity is automatically
+              provided to DEXs with 36 OKB permanently locked.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Token Creation Section -->
+    <section class="py-20 px-4" id="create">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl md:text-5xl font-bold mb-6 gradient-text">
+            Ready to Launch Your Meme Token?
+          </h2>
+          <p class="text-xl text-white/80 max-w-3xl mx-auto">
+            Create your token in seconds, trade through bonding curves, and
+            watch your community grow with automatic liquidity provision.
+          </p>
+        </div>
+
+        <div class="max-w-2xl mx-auto">
+          <div class="card">
+            <div class="text-center mb-8">
+              <div
+                class="w-20 h-20 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+              >
+                <span class="text-3xl">🚀</span>
+              </div>
+              <h3 class="text-2xl font-bold text-white mb-2">
+                Create Your Meme Token
+              </h3>
+              <p class="text-white/70">
+                Launch your token in seconds with just a few clicks!
+              </p>
+            </div>
+
+            <form class="space-y-6" onsubmit="handleTokenCreation(event)">
+              <!-- Token Name -->
+              <div>
+                <label class="block text-sm font-medium text-white mb-2">
+                  Token Name *
+                </label>
+                <input
+                  type="text"
+                  id="tokenName"
+                  placeholder="e.g., DogeMoon, PepeCoin, ShibaInu"
+                  class="input-field w-full"
+                  required
+                />
+                <p class="text-sm text-white/60 mt-1">
+                  Choose a catchy name for your meme token
+                </p>
+              </div>
+
+              <!-- Token Symbol -->
+              <div>
+                <label class="block text-sm font-medium text-white mb-2">
+                  Token Symbol *
+                </label>
+                <input
+                  type="text"
+                  id="tokenSymbol"
+                  placeholder="e.g., DOGE, PEPE, SHIB"
+                  class="input-field w-full"
+                  maxlength="10"
+                  required
+                />
+                <p class="text-sm text-white/60 mt-1">
+                  Short symbol (max 10 characters)
+                </p>
+              </div>
+
+              <!-- Submit Button -->
+              <button
+                type="submit"
+                class="btn-primary w-full py-4 text-lg flex items-center justify-center space-x-2"
+              >
+                <span>🚀 Launch Token Now</span>
+              </button>
+            </form>
+
+            <!-- Creation Fee Info -->
+            <div class="mt-8 pt-6 border-t border-white/10">
+              <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-white/80">Creation Fee:</span>
+                  <span class="text-white font-semibold">0.1 OKB</span>
+                </div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-white/80">Initial Supply:</span>
+                  <span class="text-white font-semibold"
+                    >1,000,000,000 tokens</span
+                  >
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-white/80">Network:</span>
+                  <span class="text-white font-semibold">X Layer (L2)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white/5 border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="text-center">
+          <div class="flex items-center justify-center space-x-3 mb-4">
+            <div
+              class="w-12 h-12 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center"
+            >
+              <span class="text-2xl">🚀</span>
+            </div>
+            <div>
+              <h3 class="text-xl font-bold gradient-text">Meme Launchpad</h3>
+              <p class="text-sm text-white/60">X Layer</p>
+            </div>
+          </div>
+          <p class="text-white/70 mb-6 max-w-md mx-auto">
+            The first meme token launchpad on X Layer with automatic bonding
+            curve mechanics, instant liquidity provision, and referral rewards.
+          </p>
+          <p class="text-white/60 text-sm">
+            © 2024 Meme Token Launchpad. Built with ❤️ for the X Layer
+            community.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Wallet Modal -->
+    <div id="walletModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="hideWalletModal()"
+      ></div>
+      <div
+        class="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-md mx-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-xl font-bold text-white">Connect Wallet</h3>
+          <button
+            onclick="hideWalletModal()"
+            class="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200"
+          >
+            <span class="text-white">✕</span>
+          </button>
+        </div>
+
+        <div class="space-y-3 mb-6">
+          <div
+            class="p-4 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 cursor-pointer transition-all duration-200"
+          >
+            <div class="flex items-center space-x-3">
+              <div class="text-2xl">🦊</div>
+              <div>
+                <h4 class="font-semibold text-white">MetaMask</h4>
+                <p class="text-sm text-white/60">
+                  Connect using MetaMask wallet
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="p-4 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 cursor-pointer transition-all duration-200"
+          >
+            <div class="flex items-center space-x-3">
+              <div class="text-2xl">🔗</div>
+              <div>
+                <h4 class="font-semibold text-white">OKX Wallet</h4>
+                <p class="text-sm text-white/60">Connect using OKX Wallet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+          <h4 class="font-medium text-white mb-3">Network Requirements</h4>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-white/60">Network:</span>
+              <span class="text-white">X Layer (L2)</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-white/60">Chain ID:</span>
+              <span class="text-white">195 (Testnet) / 196 (Mainnet)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showWalletModal() {
+        document.getElementById("walletModal").classList.remove("hidden");
+      }
+
+      function hideWalletModal() {
+        document.getElementById("walletModal").classList.add("hidden");
+      }
+
+      function scrollToCreate() {
+        document
+          .getElementById("create")
+          .scrollIntoView({ behavior: "smooth" });
+      }
+
+      function handleTokenCreation(event) {
+        event.preventDefault();
+        const tokenName = document.getElementById("tokenName").value;
+        const tokenSymbol = document.getElementById("tokenSymbol").value;
+
+        alert(
+          `🚀 Token "${tokenName}" (${tokenSymbol}) creation initiated! This will be integrated with smart contracts.`
+        );
+      }
+
+      // Add smooth scrolling for navigation links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth" });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
