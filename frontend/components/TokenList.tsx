@@ -1,66 +1,109 @@
 'use client'
 
-import { useState } from 'react'
-import { TrendingUp, TrendingDown, Coins, Users, Calendar, ArrowUpRight } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { TrendingUp, TrendingDown, Coins } from 'lucide-react'
+import { loadDemoTokens } from '../lib/storage'
+import { DEMO_MODE, TOKEN_FACTORY_ADDRESS } from '../lib/constants'
+import { getContract } from '../lib/web3'
+import FactoryAbi from '../lib/abis/TokenFactory.json'
+import CurveAbi from '../lib/abis/BondingCurve.json'
 
-// Mock data for demonstration
-const mockTokens = [
-  {
-    id: 1,
-    name: 'DogeMoon',
-    symbol: 'DOGE',
-    creator: '0x1234...5678',
-    creationTime: '2 hours ago',
-    currentPrice: '0.00015',
-    priceChange: '+12.5%',
-    totalSold: '1,250,000',
-    maxSupply: '1,000,000,000',
-    isPriceUp: true,
-    bondingCurveAddress: '0xabcd...efgh'
-  },
-  {
-    id: 2,
-    name: 'PepeCoin',
-    symbol: 'PEPE',
-    creator: '0x8765...4321',
-    creationTime: '5 hours ago',
-    currentPrice: '0.00018',
-    priceChange: '+8.3%',
-    totalSold: '890,000',
-    maxSupply: '1,000,000,000',
-    isPriceUp: true,
-    bondingCurveAddress: '0xdcba...hgfe'
-  },
-  {
-    id: 3,
-    name: 'ShibaInu',
-    symbol: 'SHIB',
-    creator: '0x9999...8888',
-    creationTime: '1 day ago',
-    currentPrice: '0.00012',
-    priceChange: '-3.2%',
-    totalSold: '2,100,000',
-    maxSupply: '1,000,000,000',
-    isPriceUp: false,
-    bondingCurveAddress: '0x1111...2222'
-  }
+interface UiToken {
+  id: number
+  name: string
+  symbol: string
+  creator: string
+  creationTime: string
+  currentPrice: string
+  priceChange: string
+  totalSold: string
+  maxSupply: string
+  isPriceUp: boolean
+  bondingCurveAddress: string
+}
+
+const seedMock: UiToken[] = [
+  { id: 1, name: 'DogeMoon', symbol: 'DOGE', creator: '0x1234...5678', creationTime: '2 hours ago', currentPrice: '0.00015', priceChange: '+12.5%', totalSold: '1,250,000', maxSupply: '1,000,000,000', isPriceUp: true, bondingCurveAddress: '0xabcd...efgh' },
+  { id: 2, name: 'PepeCoin', symbol: 'PEPE', creator: '0x8765...4321', creationTime: '5 hours ago', currentPrice: '0.00018', priceChange: '+8.3%', totalSold: '890,000', maxSupply: '1,000,000,000', isPriceUp: true, bondingCurveAddress: '0xdcba...hgfe' },
+  { id: 3, name: 'ShibaInu', symbol: 'SHIB', creator: '0x9999...8888', creationTime: '1 day ago', currentPrice: '0.00012', priceChange: '-3.2%', totalSold: '2,100,000', maxSupply: '1,000,000,000', isPriceUp: false, bondingCurveAddress: '0x1111...2222' }
 ]
 
 export default function TokenList() {
-  const [selectedToken, setSelectedToken] = useState<typeof mockTokens[0] | null>(null)
   const [tradeAmount, setTradeAmount] = useState('')
   const [isTrading, setIsTrading] = useState(false)
+  const [selectedToken, setSelectedToken] = useState<UiToken | null>(null)
+  const [onchainTokens, setOnchainTokens] = useState<UiToken[]>([])
+
+  // Load demo tokens
+  const demoTokens = useMemo(() => loadDemoTokens(), [])
+
+  useEffect(() => {
+    if (DEMO_MODE || !TOKEN_FACTORY_ADDRESS) return
+    ;(async () => {
+      try {
+        const factory = await getContract(TOKEN_FACTORY_ADDRESS, FactoryAbi)
+        const addrs: string[] = await factory.getAllTokens()
+        const ui: UiToken[] = []
+        for (let i = 0; i < addrs.length; i++) {
+          const info = await factory.getTokenInfo(addrs[i])
+          const curveAddr: string = info.bondingCurve
+          let price = '0.00000'
+          let sold = '0'
+          let max = '1,000,000,000'
+          try {
+            const curve = await getContract(curveAddr, CurveAbi)
+            const cp = await curve.currentPrice()
+            const ts = await curve.totalSold()
+            const ms = await curve.MAX_SUPPLY()
+            price = Number(cp) / 1e18 + ''
+            sold = ts.toString()
+            max = ms.toString()
+          } catch {}
+          ui.push({
+            id: 10000 + i,
+            name: info.name,
+            symbol: info.symbol,
+            creator: info.creator,
+            creationTime: new Date(Number(info.creationTime) * 1000).toLocaleString(),
+            currentPrice: price,
+            priceChange: '+0.0%',
+            totalSold: sold,
+            maxSupply: max,
+            isPriceUp: true,
+            bondingCurveAddress: curveAddr.slice(0, 6) + '...' + curveAddr.slice(-4)
+          })
+        }
+        setOnchainTokens(ui)
+      } catch (e) {
+        console.error('Failed to load on-chain tokens', e)
+      }
+    })()
+  }, [])
+
+  const tokens: UiToken[] = useMemo(() => {
+    const mappedDemo = demoTokens.map((t, idx) => ({
+      id: 1000 + idx,
+      name: t.name,
+      symbol: t.symbol,
+      creator: t.creator || 'you',
+      creationTime: 'just now',
+      currentPrice: '0.00010',
+      priceChange: '+0.0%',
+      totalSold: '0',
+      maxSupply: '1,000,000,000',
+      isPriceUp: true,
+      bondingCurveAddress: t.address.slice(0, 6) + '...' + t.address.slice(-4)
+    }))
+    return [...onchainTokens, ...mappedDemo, ...seedMock]
+  }, [demoTokens, onchainTokens])
 
   const handleTrade = async (action: 'buy' | 'sell') => {
     if (!selectedToken || !tradeAmount) return
-    
     setIsTrading(true)
-    
-    // Simulate trading process
     setTimeout(() => {
       setIsTrading(false)
       alert(`${action === 'buy' ? 'Buy' : 'Sell'} order will be integrated with smart contracts!`)
-    }, 2000)
+    }, 800)
   }
 
   return (
@@ -74,9 +117,9 @@ export default function TokenList() {
         {/* Token List */}
         <div className="lg:col-span-2">
           <div className="card">
-            <h4 className="text-lg font-semibold text-white mb-4">Available Tokens</h4>
+            <h4 className="text-lg font-semibold text-white mb-4">Available Tokens {DEMO_MODE ? '(Demo + Sample)' : '(On-chain + Demo + Sample)'}</h4>
             <div className="space-y-4">
-              {mockTokens.map((token) => (
+              {tokens.map((token) => (
                 <div
                   key={token.id}
                   onClick={() => setSelectedToken(token)}
@@ -96,7 +139,6 @@ export default function TokenList() {
                         <p className="text-sm text-white/60">{token.symbol}</p>
                       </div>
                     </div>
-                    
                     <div className="text-right">
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-lg font-bold text-white">{token.currentPrice} OKB</span>
@@ -110,21 +152,6 @@ export default function TokenList() {
                       <p className="text-sm text-white/60">Created {token.creationTime}</p>
                     </div>
                   </div>
-                  
-                  <div className="mt-3 pt-3 border-t border-white/10 grid grid-cols-3 gap-4 text-sm">
-                    <div>
-                      <p className="text-white/60">Total Sold</p>
-                      <p className="text-white font-medium">{token.totalSold}</p>
-                    </div>
-                    <div>
-                      <p className="text-white/60">Max Supply</p>
-                      <p className="text-white font-medium">{token.maxSupply}</p>
-                    </div>
-                    <div>
-                      <p className="text-white/60">Creator</p>
-                      <p className="text-white font-medium font-mono">{token.creator}</p>
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>
@@ -135,10 +162,9 @@ export default function TokenList() {
         <div className="lg:col-span-1">
           <div className="card">
             <h4 className="text-lg font-semibold text-white mb-4">Trading Panel</h4>
-            
+
             {selectedToken ? (
               <div className="space-y-6">
-                {/* Token Info */}
                 <div className="bg-white/5 rounded-xl p-4">
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center">
@@ -149,7 +175,7 @@ export default function TokenList() {
                       <p className="text-sm text-white/60">{selectedToken.symbol}</p>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-white/60">Current Price:</span>
@@ -168,58 +194,15 @@ export default function TokenList() {
                   </div>
                 </div>
 
-                {/* Trade Form */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      Amount to {selectedToken ? 'Buy' : 'Sell'}
-                    </label>
-                    <input
-                      type="number"
-                      value={tradeAmount}
-                      onChange={(e) => setTradeAmount(e.target.value)}
-                      placeholder="Enter amount"
-                      className="input-field w-full"
-                    />
+                    <label className="block text-sm font-medium text-white mb-2">Amount to Buy/Sell</label>
+                    <input type="number" value={tradeAmount} onChange={(e)=>setTradeAmount(e.target.value)} placeholder="Enter amount" className="input-field w-full" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => handleTrade('buy')}
-                      disabled={isTrading || !tradeAmount}
-                      className="btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isTrading ? 'Buying...' : 'Buy Tokens'}
-                    </button>
-                    <button
-                      onClick={() => handleTrade('sell')}
-                      disabled={isTrading || !tradeAmount}
-                      className="btn-secondary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isTrading ? 'Selling...' : 'Sell Tokens'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Bonding Curve Info */}
-                <div className="bg-white/5 rounded-xl p-4">
-                  <h6 className="font-medium text-white mb-3 flex items-center space-x-2">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>Bonding Curve</span>
-                  </h6>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Initial Price:</span>
-                      <span className="text-white">0.0001 OKB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Price Increment:</span>
-                      <span className="text-white">0.00001 OKB</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Formula:</span>
-                      <span className="text-white font-mono text-xs">P = 0.0001 + (Sold × 0.00001)</span>
-                    </div>
+                    <button onClick={()=>handleTrade('buy')} disabled={isTrading || !tradeAmount} className="btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed">{isTrading?'Buying...':'Buy Tokens'}</button>
+                    <button onClick={()=>handleTrade('sell')} disabled={isTrading || !tradeAmount} className="btn-secondary py-3 disabled:opacity-50 disabled:cursor-not-allowed">{isTrading?'Selling...':'Sell Tokens'}</button>
                   </div>
                 </div>
               </div>

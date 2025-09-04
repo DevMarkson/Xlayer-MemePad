@@ -24,7 +24,7 @@ frontend/.env.local
 frontend/.env*
 
 frontend/demo.html
-
+ 
 # Editors/OS
 .DS_Store
 Thumbs.db

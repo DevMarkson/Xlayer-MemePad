@@ -731,9 +731,6 @@ video {
 .mt-20 {
   margin-top: 5rem;
 }
-.mt-3 {
-  margin-top: 0.75rem;
-}
 .mt-4 {
   margin-top: 1rem;
 }
@@ -913,6 +910,9 @@ video {
 .cursor-pointer {
   cursor: pointer;
 }
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
 .list-inside {
   list-style-position: inside;
 }
@@ -924,9 +924,6 @@ video {
 }
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.grid-cols-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 .flex-col {
   flex-direction: column;
@@ -1243,9 +1240,6 @@ video {
 .pt-20 {
   padding-top: 5rem;
 }
-.pt-3 {
-  padding-top: 0.75rem;
-}
 .pt-32 {
   padding-top: 8rem;
 }
@@ -1260,9 +1254,6 @@ video {
 }
 .text-right {
   text-align: right;
-}
-.font-mono {
-  font-family: JetBrains Mono, monospace;
 }
 .text-2xl {
   font-size: 1.5rem;

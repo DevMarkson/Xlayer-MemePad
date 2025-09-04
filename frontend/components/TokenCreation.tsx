@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Rocket, Coins, Users, Info } from 'lucide-react'
 import { getContract } from '../lib/web3'
 import TokenFactoryAbi from '../lib/abis/TokenFactory.json'
-import { TOKEN_FACTORY_ADDRESS } from '../lib/constants'
+import { TOKEN_FACTORY_ADDRESS, DEMO_MODE } from '../lib/constants'
+import { saveDemoToken } from '../lib/storage'
 
 export default function TokenCreation() {
   const [formData, setFormData] = useState({
@@ -17,13 +18,23 @@ export default function TokenCreation() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!TOKEN_FACTORY_ADDRESS) {
-      alert('TokenFactory address is not set. Please set NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS in your env.')
-      return
-    }
 
     setIsCreating(true)
     try {
+      if (DEMO_MODE) {
+        await new Promise(r => setTimeout(r, 1000))
+        const mockAddress = `0x${crypto.getRandomValues(new Uint8Array(20)).reduce((s,b)=>s+b.toString(16).padStart(2,'0'),'')}`
+        saveDemoToken({ address: mockAddress, name: formData.tokenName, symbol: formData.tokenSymbol, createdAt: Date.now() })
+        alert(`✅ Demo: Token created at ${mockAddress}`)
+        setFormData({ tokenName: '', tokenSymbol: '', referrer: '', agreeToTerms: false })
+        return
+      }
+
+      if (!TOKEN_FACTORY_ADDRESS) {
+        alert('TokenFactory address is not set. Please set NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS in your env.')
+        return
+      }
+
       const factory = await getContract(TOKEN_FACTORY_ADDRESS, TokenFactoryAbi)
       // 0.1 OKB in wei
       const value = BigInt(1e17)
@@ -145,15 +156,15 @@ export default function TokenCreation() {
           <div className="bg-white/5 rounded-xl p-4 border border-white/10">
             <div className="flex items-center justify-between mb-2">
               <span className="text-white/80">Creation Fee:</span>
-              <span className="text-white font-semibold">0.1 OKB</span>
+              <span className="text-white font-semibold">{DEMO_MODE ? 'Demo (no fee)' : '0.1 OKB'}</span>
             </div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-white/80">Initial Supply:</span>
               <span className="text-white font-semibold">1,000,000,000 tokens</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-white/80">Network:</span>
-              <span className="text-white font-semibold">X Layer (L2)</span>
+              <span className="text-white/80">Mode:</span>
+              <span className="text-white font-semibold">{DEMO_MODE ? 'Demo' : 'On-chain'}</span>
             </div>
           </div>
 
@@ -166,7 +177,7 @@ export default function TokenCreation() {
             {isCreating ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                <span>Creating Token...</span>
+                <span>{DEMO_MODE ? 'Simulating...' : 'Creating Token...'}</span>
               </>
             ) : (
               <>

@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: "env" });
 require("@nomicfoundation/hardhat-toolbox");
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
       chainId: 31337,
     },
     xlayerTestnet: {
-      url: process.env.XLAYER_TESTNET_RPC || "https://rpc-testnet.xlayer.tech",
+      url: process.env.XLAYER_TESTNET_RPC || "https://testrpc.xlayer.tech",
       chainId: 195,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
