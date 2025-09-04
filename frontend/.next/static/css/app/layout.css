@@ -728,6 +728,9 @@ video {
 .mt-12 {
   margin-top: 3rem;
 }
+.mt-2 {
+  margin-top: 0.5rem;
+}
 .mt-20 {
   margin-top: 5rem;
 }
@@ -910,9 +913,6 @@ video {
 .cursor-pointer {
   cursor: pointer;
 }
-.cursor-not-allowed {
-  cursor: not-allowed;
-}
 .list-inside {
   list-style-position: inside;
 }
@@ -1033,6 +1033,9 @@ video {
 }
 .border-b {
   border-bottom-width: 1px;
+}
+.border-b-2 {
+  border-bottom-width: 2px;
 }
 .border-t {
   border-top-width: 1px;

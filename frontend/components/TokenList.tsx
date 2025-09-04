@@ -8,6 +8,12 @@ import { getContract } from '../lib/web3'
 import FactoryAbi from '../lib/abis/TokenFactory.json'
 import CurveAbi from '../lib/abis/BondingCurve.json'
 
+declare global {
+  interface Window {
+    ethereum?: any
+  }
+}
+
 interface UiToken {
   id: number
   name: string
@@ -20,6 +26,8 @@ interface UiToken {
   maxSupply: string
   isPriceUp: boolean
   bondingCurveAddress: string
+  curveContractAddress?: string // Full address for contract calls
+  tokenAddress?: string // Full token address for factory calls
 }
 
 const seedMock: UiToken[] = [
@@ -33,9 +41,86 @@ export default function TokenList() {
   const [isTrading, setIsTrading] = useState(false)
   const [selectedToken, setSelectedToken] = useState<UiToken | null>(null)
   const [onchainTokens, setOnchainTokens] = useState<UiToken[]>([])
+  const [pricePreview, setPricePreview] = useState<{ buyPrice: string; sellPrice: string } | null>(null)
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false)
 
   // Load demo tokens
   const demoTokens = useMemo(() => loadDemoTokens(), [])
+
+  // Calculate price preview when trade amount or selected token changes
+  useEffect(() => {
+    if (!selectedToken || !tradeAmount) {
+      setPricePreview(null)
+      return
+    }
+
+    const calculatePrice = async () => {
+      setIsCalculatingPrice(true)
+      try {
+        const amount = parseFloat(tradeAmount)
+        if (isNaN(amount) || amount <= 0) {
+          setPricePreview(null)
+          return
+        }
+
+        // For demo mode or when no curve contract, use simple calculation
+        if (DEMO_MODE || !selectedToken.curveContractAddress) {
+          const currentPrice = parseFloat(selectedToken.currentPrice)
+          const buyPrice = currentPrice * amount * 1.02 // 2% premium for buy
+          const sellPrice = currentPrice * amount * 0.98 // 2% discount for sell
+          
+          setPricePreview({
+            buyPrice: buyPrice.toFixed(6),
+            sellPrice: sellPrice.toFixed(6)
+          })
+          return
+        }
+
+        // Try to get prices from contract with timeout
+        const curve = await getContract(selectedToken.curveContractAddress!, CurveAbi)
+        const amountWei = BigInt(Math.floor(amount * 1e18))
+        
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Contract call timeout')), 10000)
+        )
+        
+        const buyPricePromise = curve.getBuyPrice(amountWei)
+        const sellPricePromise = curve.getSellPrice(amountWei)
+        
+        const [buyPriceWei, sellPriceWei] = await Promise.race([
+          Promise.all([buyPricePromise, sellPricePromise]),
+          timeoutPromise
+        ]) as [bigint, bigint]
+        
+        const buyPrice = Number(buyPriceWei) / 1e18
+        const sellPrice = Number(sellPriceWei) / 1e18
+        
+        setPricePreview({
+          buyPrice: buyPrice.toFixed(6),
+          sellPrice: sellPrice.toFixed(6)
+        })
+      } catch (error) {
+        console.error('Failed to calculate price preview:', error)
+        // Fallback to simple calculation
+        const amount = parseFloat(tradeAmount)
+        const currentPrice = parseFloat(selectedToken.currentPrice)
+        const buyPrice = currentPrice * amount * 1.02
+        const sellPrice = currentPrice * amount * 0.98
+        
+        setPricePreview({
+          buyPrice: buyPrice.toFixed(6),
+          sellPrice: sellPrice.toFixed(6)
+        })
+      } finally {
+        setIsCalculatingPrice(false)
+      }
+    }
+
+    // Debounce the calculation
+    const timeoutId = setTimeout(calculatePrice, 300) // Reduced debounce time
+    return () => clearTimeout(timeoutId)
+  }, [tradeAmount, selectedToken])
 
   useEffect(() => {
     if (DEMO_MODE || !TOKEN_FACTORY_ADDRESS) return
@@ -70,7 +155,9 @@ export default function TokenList() {
             totalSold: sold,
             maxSupply: max,
             isPriceUp: true,
-            bondingCurveAddress: curveAddr.slice(0, 6) + '...' + curveAddr.slice(-4)
+            bondingCurveAddress: curveAddr.slice(0, 6) + '...' + curveAddr.slice(-4),
+            curveContractAddress: curveAddr, // Store full address for contract calls
+            tokenAddress: addrs[i] // Store the actual token address
           })
         }
         setOnchainTokens(ui)
@@ -92,18 +179,101 @@ export default function TokenList() {
       totalSold: '0',
       maxSupply: '1,000,000,000',
       isPriceUp: true,
-      bondingCurveAddress: t.address.slice(0, 6) + '...' + t.address.slice(-4)
+      bondingCurveAddress: t.address.slice(0, 6) + '...' + t.address.slice(-4),
+      curveContractAddress: t.address, // Demo tokens have full address
+      tokenAddress: t.address // For demo tokens, use the same address
     }))
     return [...onchainTokens, ...mappedDemo, ...seedMock]
   }, [demoTokens, onchainTokens])
 
   const handleTrade = async (action: 'buy' | 'sell') => {
-    if (!selectedToken || !tradeAmount) return
+    if (!selectedToken || !tradeAmount || !pricePreview) return
+    
     setIsTrading(true)
-    setTimeout(() => {
+    try {
+      if (DEMO_MODE) {
+        // Demo mode - simulate wallet transaction
+        const provider = window.ethereum
+        if (!provider) {
+          alert('Please install MetaMask to continue')
+          return
+        }
+
+        // Request account access
+        const accounts = await provider.request({ method: 'eth_requestAccounts' })
+        if (!accounts || accounts.length === 0) {
+          alert('Please connect your wallet')
+          return
+        }
+
+        const userAddress = accounts[0]
+        const amount = parseFloat(tradeAmount)
+        const price = parseFloat(action === 'buy' ? pricePreview.buyPrice : pricePreview.sellPrice)
+        
+        // Create transaction object for MetaMask
+        const txParams = {
+          from: userAddress,
+          to: selectedToken.tokenAddress || '0x0000000000000000000000000000000000000000', // Demo address
+          value: action === 'buy' ? 
+            `0x${Math.floor(price * 1e18).toString(16)}` : // Convert to hex
+            '0x0',
+          gas: '0x5208', // 21000 gas
+          gasPrice: '0x3b9aca00', // 1 gwei
+          data: '0x', // Empty data for demo
+        }
+
+        // Show MetaMask transaction popup
+        const txHash = await provider.request({
+          method: 'eth_sendTransaction',
+          params: [txParams]
+        })
+
+        // Simulate transaction confirmation
+        setTimeout(() => {
+          setIsTrading(false)
+          alert(`✅ ${action === 'buy' ? 'Buy' : 'Sell'} transaction successful!\n\nTransaction Hash: ${txHash}\nAmount: ${tradeAmount} ${selectedToken.symbol}\nPrice: ${price} OKB\nTotal: ${(amount * price).toFixed(6)} OKB`)
+          setTradeAmount('')
+          setPricePreview(null)
+        }, 2000)
+
+        return
+      }
+
+      if (!TOKEN_FACTORY_ADDRESS || !selectedToken.tokenAddress) {
+        throw new Error('Token factory or token address not available')
+      }
+
+      const factory = await getContract(TOKEN_FACTORY_ADDRESS, FactoryAbi)
+      const amount = parseFloat(tradeAmount)
+      const amountWei = BigInt(Math.floor(amount * 1e18))
+
+      if (action === 'buy') {
+        // Buy tokens - send OKB value
+        const buyValue = BigInt(Math.floor(parseFloat(pricePreview.buyPrice) * 1e18))
+        const tx = await factory.buyTokens(selectedToken.tokenAddress, amountWei, { value: buyValue })
+        await tx.wait()
+        alert(`Successfully bought ${tradeAmount} ${selectedToken.symbol} tokens!`)
+      } else {
+        // Sell tokens - no value needed
+        const tx = await factory.sellTokens(selectedToken.tokenAddress, amountWei)
+        await tx.wait()
+        alert(`Successfully sold ${tradeAmount} ${selectedToken.symbol} tokens!`)
+      }
+
+      // Reset form
+      setTradeAmount('')
+      setPricePreview(null)
+      
+    } catch (error: any) {
+      console.error('Trade failed:', error)
+      if (error.code === 4001) {
+        alert('Transaction was rejected by user')
+      } else {
+        alert(`Trade failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+    } finally {
       setIsTrading(false)
-      alert(`${action === 'buy' ? 'Buy' : 'Sell'} order will be integrated with smart contracts!`)
-    }, 800)
+    }
   }
 
   return (
@@ -197,12 +367,64 @@ export default function TokenList() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-white mb-2">Amount to Buy/Sell</label>
-                    <input type="number" value={tradeAmount} onChange={(e)=>setTradeAmount(e.target.value)} placeholder="Enter amount" className="input-field w-full" />
+                    <input 
+                      type="number" 
+                      value={tradeAmount} 
+                      onChange={(e) => setTradeAmount(e.target.value)} 
+                      placeholder="Enter amount" 
+                      className="input-field w-full" 
+                    />
                   </div>
 
+                  {/* Price Preview */}
+                  {tradeAmount && (
+                    <div className="bg-white/5 rounded-xl p-4">
+                      <h5 className="text-sm font-medium text-white mb-3">Price Preview</h5>
+                      {isCalculatingPrice ? (
+                        <div className="text-center py-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500 mx-auto"></div>
+                          <p className="text-xs text-white/60 mt-1">Calculating...</p>
+                        </div>
+                      ) : pricePreview ? (
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-white/60">Buy {tradeAmount} tokens for:</span>
+                            <span className="text-success-400 font-medium">{pricePreview.buyPrice} OKB</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-white/60">Sell {tradeAmount} tokens for:</span>
+                            <span className="text-error-400 font-medium">{pricePreview.sellPrice} OKB</span>
+                          </div>
+                          <div className="border-t border-white/10 pt-2 mt-2">
+                            <div className="flex justify-between">
+                              <span className="text-white/60">Price per token:</span>
+                              <span className="text-white font-medium">
+                                {(parseFloat(pricePreview.buyPrice) / parseFloat(tradeAmount)).toFixed(6)} OKB
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-white/60">Enter a valid amount to see price preview</p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
-                    <button onClick={()=>handleTrade('buy')} disabled={isTrading || !tradeAmount} className="btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed">{isTrading?'Buying...':'Buy Tokens'}</button>
-                    <button onClick={()=>handleTrade('sell')} disabled={isTrading || !tradeAmount} className="btn-secondary py-3 disabled:opacity-50 disabled:cursor-not-allowed">{isTrading?'Selling...':'Sell Tokens'}</button>
+                    <button 
+                      onClick={() => handleTrade('buy')} 
+                      disabled={isTrading || !tradeAmount || !pricePreview} 
+                      className="btn-primary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isTrading ? 'Buying...' : 'Buy Tokens'}
+                    </button>
+                    <button 
+                      onClick={() => handleTrade('sell')} 
+                      disabled={isTrading || !tradeAmount || !pricePreview} 
+                      className="btn-secondary py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isTrading ? 'Selling...' : 'Sell Tokens'}
+                    </button>
                   </div>
                 </div>
               </div>
