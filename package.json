@@ -7,6 +7,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy-testnet.js --network xlayerTestnet",
+    "deploy:factory": "hardhat run scripts/deploy-factory.js --network xlayerTestnet",
     "deploy:mainnet": "hardhat run scripts/deploy-mainnet.js --network xlayerMainnet",
     "node": "hardhat node",
     "clean": "hardhat clean"
@@ -21,7 +22,9 @@
   "author": "Your Team",
   "license": "MIT",
   "devDependencies": {
-    "hardhat": "^2.19.0",
-    "@openzeppelin/contracts": "^5.0.0"
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.26.0"
   }
 }

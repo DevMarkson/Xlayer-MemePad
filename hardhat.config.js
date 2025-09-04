@@ -1,3 +1,6 @@
+require("dotenv").config();
+require("@nomicfoundation/hardhat-toolbox");
+
 module.exports = {
   solidity: {
     version: "0.8.20",
@@ -13,12 +16,12 @@ module.exports = {
       chainId: 31337,
     },
     xlayerTestnet: {
-      url: "https://rpc-testnet.xlayer.tech",
+      url: process.env.XLAYER_TESTNET_RPC || "https://rpc-testnet.xlayer.tech",
       chainId: 195,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
     xlayerMainnet: {
-      url: "https://rpc.xlayer.tech",
+      url: process.env.XLAYER_MAINNET_RPC || "https://rpc.xlayer.tech",
       chainId: 196,
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },

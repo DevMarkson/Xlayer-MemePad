@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./MemeToken.sol";
 import "./BondingCurve.sol";
 
@@ -11,7 +10,6 @@ import "./BondingCurve.sol";
  * @dev Factory contract for creating new meme tokens with bonding curve mechanics
  */
 contract TokenFactory is Ownable {
-    using SafeMath for uint256;
     
     // Token creation fee in OKB (0.1 OKB)
     uint256 public constant TOKEN_CREATION_FEE = 0.1 ether;
@@ -112,7 +110,7 @@ contract TokenFactory is Ownable {
         
         tokens[address(newToken)] = tokenInfo;
         allTokens.push(address(newToken));
-        totalTokensCreated = totalTokensCreated.add(1);
+        totalTokensCreated = totalTokensCreated + 1;
         
         // Collect and distribute fees
         _collectAndDistributeFees(address(newToken), msg.value, referrer);
@@ -148,11 +146,11 @@ contract TokenFactory is Ownable {
         
         // Refund excess payment
         if (msg.value > actualCost) {
-            payable(msg.sender).transfer(msg.value.sub(actualCost));
+            payable(msg.sender).transfer(msg.value - actualCost);
         }
         
         // Add to pending liquidity
-        pendingLiquidity = pendingLiquidity.add(actualCost);
+        pendingLiquidity = pendingLiquidity + actualCost;
         
         // Check if liquidity threshold is reached
         if (pendingLiquidity >= LIQUIDITY_THRESHOLD) {
@@ -222,11 +220,11 @@ contract TokenFactory is Ownable {
         uint256 totalFee,
         address referrer
     ) internal {
-        totalFeesCollected = totalFeesCollected.add(totalFee);
+        totalFeesCollected = totalFeesCollected + totalFee;
         
-        uint256 platformFee = totalFee.mul(PLATFORM_FEE_PERCENT).div(10000);
-        uint256 creatorFee = totalFee.mul(CREATOR_FEE_PERCENT).div(10000);
-        uint256 referrerFee = totalFee.mul(REFERRER_FEE_PERCENT).div(10000);
+        uint256 platformFee = (totalFee * PLATFORM_FEE_PERCENT) / 10000;
+        uint256 creatorFee = (totalFee * CREATOR_FEE_PERCENT) / 10000;
+        uint256 referrerFee = (totalFee * REFERRER_FEE_PERCENT) / 10000;
         
         // Transfer platform fee
         payable(platformTreasury).transfer(platformFee);

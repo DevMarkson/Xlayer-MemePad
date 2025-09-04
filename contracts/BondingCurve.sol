@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
@@ -10,7 +9,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * Price increases linearly with each token sold
  */
 contract BondingCurve is Ownable {
-    using SafeMath for uint256;
     
     // Bonding curve parameters
     uint256 public constant INITIAL_PRICE = 0.0001 ether; // 0.0001 ETH/OKB per token
@@ -34,7 +32,7 @@ contract BondingCurve is Ownable {
      * @return Current price per token
      */
     function getCurrentPrice() public view returns (uint256) {
-        return INITIAL_PRICE.add(totalSold.mul(PRICE_INCREMENT));
+        return INITIAL_PRICE + (totalSold * PRICE_INCREMENT);
     }
     
     /**
@@ -44,15 +42,15 @@ contract BondingCurve is Ownable {
      */
     function getBuyPrice(uint256 amount) public view returns (uint256) {
         require(amount > 0, "Amount must be greater than 0");
-        require(totalSold.add(amount) <= MAX_SUPPLY, "Exceeds max supply");
+        require(totalSold + amount <= MAX_SUPPLY, "Exceeds max supply");
         
         uint256 totalCost = 0;
         uint256 tempTotalSold = totalSold;
         
         for (uint256 i = 0; i < amount; i++) {
-            uint256 price = INITIAL_PRICE.add(tempTotalSold.mul(PRICE_INCREMENT));
-            totalCost = totalCost.add(price);
-            tempTotalSold = tempTotalSold.add(1);
+            uint256 price = INITIAL_PRICE + (tempTotalSold * PRICE_INCREMENT);
+            totalCost = totalCost + price;
+            tempTotalSold = tempTotalSold + 1;
         }
         
         return totalCost;
@@ -71,9 +69,9 @@ contract BondingCurve is Ownable {
         uint256 tempTotalSold = totalSold;
         
         for (uint256 i = 0; i < amount; i++) {
-            tempTotalSold = tempTotalSold.sub(1);
-            uint256 price = INITIAL_PRICE.add(tempTotalSold.mul(PRICE_INCREMENT));
-            totalReceived = totalReceived.add(price);
+            tempTotalSold = tempTotalSold - 1;
+            uint256 price = INITIAL_PRICE + (tempTotalSold * PRICE_INCREMENT);
+            totalReceived = totalReceived + price;
         }
         
         return totalReceived;
@@ -87,12 +85,12 @@ contract BondingCurve is Ownable {
      */
     function buyTokens(address buyer, uint256 amount) external onlyOwner returns (uint256) {
         require(amount > 0, "Amount must be greater than 0");
-        require(totalSold.add(amount) <= MAX_SUPPLY, "Exceeds max supply");
+        require(totalSold + amount <= MAX_SUPPLY, "Exceeds max supply");
         
         uint256 totalCost = getBuyPrice(amount);
         
         // Update state
-        totalSold = totalSold.add(amount);
+        totalSold = totalSold + amount;
         currentPrice = getCurrentPrice();
         
         emit TokensPurchased(buyer, amount, totalCost);
@@ -110,15 +108,15 @@ contract BondingCurve is Ownable {
         require(amount > 0, "Amount must be greater than 0");
         require(amount <= totalSold, "Cannot sell more than total sold");
         
-        uint256 totalReceived = getSellPrice(amount);
+        uint256 received = getSellPrice(amount);
         
         // Update state
-        totalSold = totalSold.sub(amount);
+        totalSold = totalSold - amount;
         currentPrice = getCurrentPrice();
         
-        emit TokensSold(seller, amount, totalReceived);
+        emit TokensSold(seller, amount, received);
         
-        return totalReceived;
+        return received;
     }
     
     /**

@@ -1,0 +1,3 @@
+export const TOKEN_FACTORY_ADDRESS = process.env.NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS || ''
+export const XLAYER_TESTNET = 195
+export const XLAYER_MAINNET = 196

@@ -2,6 +2,9 @@
 
 import { useState } from 'react'
 import { Rocket, Coins, Users, Info } from 'lucide-react'
+import { getContract } from '../lib/web3'
+import TokenFactoryAbi from '../lib/abis/TokenFactory.json'
+import { TOKEN_FACTORY_ADDRESS } from '../lib/constants'
 
 export default function TokenCreation() {
   const [formData, setFormData] = useState({
@@ -14,13 +17,31 @@ export default function TokenCreation() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!TOKEN_FACTORY_ADDRESS) {
+      alert('TokenFactory address is not set. Please set NEXT_PUBLIC_TOKEN_FACTORY_ADDRESS in your env.')
+      return
+    }
+
     setIsCreating(true)
-    
-    // Simulate token creation process
-    setTimeout(() => {
+    try {
+      const factory = await getContract(TOKEN_FACTORY_ADDRESS, TokenFactoryAbi)
+      // 0.1 OKB in wei
+      const value = BigInt(1e17)
+      const tx = await factory.createToken(
+        formData.tokenName,
+        formData.tokenSymbol,
+        formData.referrer || '0x0000000000000000000000000000000000000000',
+        { value }
+      )
+      await tx.wait()
+      alert('✅ Token created successfully!')
+      setFormData({ tokenName: '', tokenSymbol: '', referrer: '', agreeToTerms: false })
+    } catch (err: any) {
+      console.error(err)
+      alert(err?.message || 'Failed to create token')
+    } finally {
       setIsCreating(false)
-      alert('Token creation feature will be integrated with smart contracts!')
-    }, 2000)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

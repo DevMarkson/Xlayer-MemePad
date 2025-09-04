@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-    console.log("🚀 Deploying Meme Token Launchpad to X Layer Testnet...");
+    console.log("Deploying Meme Token Launchpad to X Layer Testnet...");
     
     // Get the deployer account
     const [deployer] = await ethers.getSigners();
@@ -15,35 +15,35 @@ async function main() {
     await tokenFactory.waitForDeployment();
     
     const tokenFactoryAddress = await tokenFactory.getAddress();
-    console.log("✅ TokenFactory deployed to:", tokenFactoryAddress);
+    console.log("TokenFactory deployed to:", tokenFactoryAddress);
     
     // Deploy a sample MemeToken for testing
-    console.log("\n🪙 Deploying sample MemeToken...");
+    console.log("\nDeploying sample MemeToken...");
     const MemeToken = await ethers.getContractFactory("MemeToken");
     const sampleToken = await MemeToken.deploy("SampleToken", "SAMPLE", deployer.address);
     await sampleToken.waitForDeployment();
     
     const sampleTokenAddress = await sampleToken.getAddress();
-    console.log("✅ Sample MemeToken deployed to:", sampleTokenAddress);
+    console.log("Sample MemeToken deployed to:", sampleTokenAddress);
     
     // Deploy a sample BondingCurve for testing
-    console.log("\n📈 Deploying sample BondingCurve...");
+    console.log("\nDeploying sample BondingCurve...");
     const BondingCurve = await ethers.getContractFactory("BondingCurve");
     const sampleBondingCurve = await BondingCurve.deploy(deployer.address);
     await sampleBondingCurve.waitForDeployment();
     
     const sampleBondingCurveAddress = await sampleBondingCurve.getAddress();
-    console.log("✅ Sample BondingCurve deployed to:", sampleBondingCurveAddress);
+    console.log("Sample BondingCurve deployed to:", sampleBondingCurveAddress);
     
     // Verify deployment
-    console.log("\n🔍 Verifying deployment...");
+    console.log("\nVerifying deployment...");
     
     // Check TokenFactory state
     const totalTokensCreated = await tokenFactory.totalTokensCreated();
     const totalFeesCollected = await tokenFactory.totalFeesCollected();
     const pendingLiquidity = await tokenFactory.pendingLiquidity();
     
-    console.log("📊 TokenFactory State:");
+    console.log("TokenFactory State:");
     console.log("   - Total tokens created:", totalTokensCreated.toString());
     console.log("   - Total fees collected:", ethers.formatEther(totalFeesCollected), "OKB");
     console.log("   - Pending liquidity:", ethers.formatEther(pendingLiquidity), "OKB");
@@ -53,7 +53,7 @@ async function main() {
     const tokenSymbol = await sampleToken.symbol();
     const tokenSupply = await sampleToken.totalSupply();
     
-    console.log("\n🪙 Sample Token State:");
+    console.log("\nSample Token State:");
     console.log("   - Name:", tokenName);
     console.log("   - Symbol:", tokenSymbol);
     console.log("   - Total Supply:", ethers.formatEther(tokenSupply));
@@ -63,12 +63,12 @@ async function main() {
     const priceIncrement = await sampleBondingCurve.PRICE_INCREMENT();
     const maxSupply = await sampleBondingCurve.MAX_SUPPLY();
     
-    console.log("\n📈 Sample Bonding Curve State:");
+    console.log("\nSample Bonding Curve State:");
     console.log("   - Initial Price:", ethers.formatEther(initialPrice), "OKB");
     console.log("   - Price Increment:", ethers.formatEther(priceIncrement), "OKB");
     console.log("   - Max Supply:", maxSupply.toString());
     
-    console.log("\n🎉 Deployment completed successfully!");
+    console.log("\nDeployment completed successfully!");
     console.log("\n📋 Contract Addresses:");
     console.log("   TokenFactory:", tokenFactoryAddress);
     console.log("   Sample MemeToken:", sampleTokenAddress);
@@ -99,12 +99,12 @@ async function main() {
         JSON.stringify(deploymentInfo, null, 2)
     );
     
-    console.log("\n💾 Deployment info saved to deployment-testnet.json");
+    console.log("\nDeployment info saved to deployment-testnet.json");
 }
 
 main()
     .then(() => process.exit(0))
     .catch((error) => {
-        console.error("❌ Deployment failed:", error);
+        console.error("Deployment failed:", error);
         process.exit(1);
     });
