@@ -7,10 +7,11 @@ import Hero from '@/components/Hero'
 import Features from '@/components/Features'
 import TokenCreation from '@/components/TokenCreation'
 import TokenList from '@/components/TokenList'
+import LiquidityPanel from '@/components/LiquidityPanel'
 import Footer from '@/components/Footer'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'create' | 'trade'>('create')
+  const [activeTab, setActiveTab] = useState<'create' | 'trade' | 'liquidity'>('create')
 
   return (
     <main className="min-h-screen">
@@ -55,6 +56,16 @@ export default function Home() {
               >
                 💰 Trade Tokens
               </button>
+              <button
+                onClick={() => setActiveTab('liquidity')}
+                className={`px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  activeTab === 'liquidity'
+                    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg'
+                    : 'text-white/70 hover:text-white'
+                }`}
+              >
+                🔒 Liquidity Pool
+              </button>
             </div>
           </div>
           
@@ -62,8 +73,10 @@ export default function Home() {
           <div className="animate-fade-in">
             {activeTab === 'create' ? (
               <TokenCreation />
-            ) : (
+            ) : activeTab === 'trade' ? (
               <TokenList />
+            ) : (
+              <LiquidityPanel />
             )}
           </div>
         </div>

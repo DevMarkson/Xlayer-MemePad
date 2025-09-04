@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./MemeToken.sol";
 import "./BondingCurve.sol";
+import "./LiquidityManager.sol";
 
 /**
  * @title TokenFactory
@@ -40,6 +41,9 @@ contract TokenFactory is Ownable {
     address public platformTreasury;
     address public liquidityManager;
     
+    // LiquidityManager contract instance
+    LiquidityManager public liquidityManagerContract;
+    
     // Structs
     struct TokenInfo {
         string name;
@@ -74,6 +78,16 @@ contract TokenFactory is Ownable {
     constructor(address initialOwner) Ownable(initialOwner) {
         platformTreasury = initialOwner;
         liquidityManager = initialOwner;
+    }
+    
+    /**
+     * @dev Set LiquidityManager contract
+     * @param managerAddress LiquidityManager contract address
+     */
+    function setLiquidityManagerContract(address managerAddress) external onlyOwner {
+        require(managerAddress != address(0), "Invalid manager address");
+        liquidityManagerContract = LiquidityManager(managerAddress);
+        liquidityManager = managerAddress;
     }
     
     /**
@@ -249,8 +263,13 @@ contract TokenFactory is Ownable {
     function _triggerLiquidityProvision() internal {
         emit LiquidityThresholdReached(pendingLiquidity);
         
-        // Transfer to liquidity manager for DEX integration
-        payable(liquidityManager).transfer(pendingLiquidity);
+        if (address(liquidityManagerContract) != address(0)) {
+            // Use LiquidityManager contract for DEX integration
+            liquidityManagerContract.provideLiquidity{value: pendingLiquidity}(pendingLiquidity);
+        } else {
+            // Fallback: transfer to liquidity manager address
+            payable(liquidityManager).transfer(pendingLiquidity);
+        }
         
         // Reset pending liquidity
         pendingLiquidity = 0;

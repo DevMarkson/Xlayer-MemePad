@@ -8,6 +8,7 @@
     "test": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy-testnet.js --network xlayerTestnet",
     "deploy:factory": "hardhat run scripts/deploy-factory.js --network xlayerTestnet",
+    "deploy:liquidity": "hardhat run scripts/deploy-liquidity.js --network xlayerTestnet",
     "deploy:mainnet": "hardhat run scripts/deploy-mainnet.js --network xlayerMainnet",
     "node": "hardhat node",
     "clean": "hardhat clean"
