@@ -2,6 +2,11 @@
 
 A Pump.fun-style meme token launchpad built on the **X Layer chain (OKX zkEVM L2)** with automatic bonding curve mechanics and DEX integration.
 
+![Project Screenshot](./xlayer-launchpad.png)
+
+> 🎥 **Demo Video**: [Watch on YouTube](https://www.youtube.com/watch?v=ZNgk5ERy0NA)
+
+
 ## 🌟 Features
 
 ### Core Functionality
